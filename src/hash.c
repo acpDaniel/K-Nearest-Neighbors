@@ -25,6 +25,7 @@ HashTable criaHashTable(int tamanhoOriginal)
     return ht;
 }
 
+// Função para criar a chave de hash na tabela
 int Hash(char *s)
 {
     int hashValue = 0;
@@ -42,6 +43,7 @@ int Hash(char *s)
     return hashValue;
 }
 
+// Função auxiliar para dar resize na tabela
 void Resize(HashTable *ht, size_t tamanho)
 {
     ElementoTabela *tabelaAux = ht->tabela;
@@ -50,7 +52,6 @@ void Resize(HashTable *ht, size_t tamanho)
     ht->tabela = (ElementoTabela *)malloc(tamanho * sizeof(ElementoTabela));
     if (ht->tabela == NULL)
     {
-        // fprintf(stderr, "Erro ao alocar memória durante o redimensionamento.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -77,23 +78,21 @@ void Resize(HashTable *ht, size_t tamanho)
     free(tabelaAux); // Libera a memória antiga
 }
 
+// Função para inserir um novo elemento na tabela hash
 void Inserir(HashTable *ht, char *id, double x, double y)
 {
     if (ht->tamanhoConjunto + 1 >= ht->tamanhoTabela)
     {
-        // printf("Fazendo resize: \n \n");
         Resize(ht, ht->tamanhoTabela * 2);
     }
 
     int pos = Hash(id);
-    // printf("Posição calculada pelo hash: %d\n", pos);
     int i = 0;
     while ((i < ht->tamanhoTabela) && !ht->tabela[(pos + i) % ht->tamanhoTabela].vazio && strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) != 0)
     {
         i++;
     }
 
-    // printf("Posição que estou inserindo: %d\n", (pos + i) % ht->tamanhoTabela);
     ht->tabela[(pos + i) % ht->tamanhoTabela].id = id;
     ht->tabela[(pos + i) % ht->tamanhoTabela].x = x;
     ht->tabela[(pos + i) % ht->tamanhoTabela].y = y;
@@ -102,6 +101,7 @@ void Inserir(HashTable *ht, char *id, double x, double y)
     ht->tamanhoConjunto++;
 }
 
+// Função para remover um elemento da tabela
 void Remover(HashTable *ht, char *id)
 {
     int pos = Hash(id);
@@ -118,6 +118,7 @@ void Remover(HashTable *ht, char *id)
     }
 }
 
+// Função que recebe o id de uma estação e altera os parametros x e y por referencia para retornar as coordenadas
 bool GetCoords(HashTable *ht, char *id, double *x, double *y)
 {
     int pos = Hash(id);
@@ -127,7 +128,6 @@ bool GetCoords(HashTable *ht, char *id, double *x, double *y)
         i++;
     }
 
-    // printf("Posição que estou pesquisando: %d\n", (pos + i) % ht->tamanhoTabela);
     if (strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) == 0 && !ht->tabela[(pos + i) % ht->tamanhoTabela].retirada)
     {
         *x = ht->tabela[(pos + i) % ht->tamanhoTabela].x;
@@ -135,4 +135,23 @@ bool GetCoords(HashTable *ht, char *id, double *x, double *y)
         return true;
     }
     return false;
+}
+
+void destroiHashTable(HashTable *ht)
+{
+    if (ht == NULL)
+        return;
+
+    // Itera sobre cada elemento da tabela
+    for (int i = 0; i < ht->tamanhoTabela; i++)
+    {
+        if (!ht->tabela[i].vazio && ht->tabela[i].id != NULL)
+        {
+            // Libera a memória alocada para a string ID, se alocada dinamicamente
+            free(ht->tabela[i].id);
+        }
+    }
+
+    // Libera a memória alocada para o array de elementos
+    free(ht->tabela);
 }

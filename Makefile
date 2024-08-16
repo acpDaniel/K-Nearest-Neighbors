@@ -1,30 +1,15 @@
-# Compilador
 CC = gcc
+CFLAGS = -Wall -I include
+SRC_DIR = src/
+BIN_DIR = bin/
+EXECUTABLE = $(BIN_DIR)tp3.out
+SOURCE_FILES = $(SRC_DIR)main.c $(SRC_DIR)quadTree.c $(SRC_DIR)heap.c $(SRC_DIR)ponto.c $(SRC_DIR)hash.c  
 
-# Flags de compilação
-CFLAGS = -I$(INCDIR) -g
+all: 
+	$(CC) $(CFLAGS) -o $(EXECUTABLE) $(SOURCE_FILES) -lm
 
-# Diretórios
-SRCDIR = src
-BINDIR = bin
-INCDIR = include
+read:
+	 ./bin/tp3.out
 
-# Nome do executável
-EXECUTABLE = $(BINDIR)/meu_programa.exe
-
-# Fonte principal
-MAIN_SRC = main.cpp
-
-# Regra padrão para compilar o executável
-all: $(EXECUTABLE)
-
-# Regra para criar o executável
-$(EXECUTABLE): $(MAIN_SRC)
-	$(CC) $(CFLAGS) -o $@ $<
-
-# Limpeza de arquivos compilados
 clean:
-	rm -f $(EXECUTABLE)
-
-# Garantir que `clean` e `all` sejam tratados como alvos que não são arquivos
-.PHONY: all clean
+	rm -rf $(BIN_DIR)*.out

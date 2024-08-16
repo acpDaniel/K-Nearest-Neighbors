@@ -1,7 +1,7 @@
 #ifndef HASH_TABLE_H
 #define HASH_TABLE_H
 
-#include <stdbool.h> // Para tipos booleanos
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +26,7 @@ typedef struct
 
 // Declaração das funções
 HashTable criaHashTable(int tamanhoOriginal);
+void destroiHashTable(HashTable *ht);
 int Hash(char *s);
 void Resize(HashTable *ht, size_t tamanho);
 void Inserir(HashTable *ht, char *id, double x, double y);

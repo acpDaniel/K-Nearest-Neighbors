@@ -3,7 +3,6 @@
 
 #include "heap.h"
 #include "ponto.h"
-#include "smv.h"
 
 typedef struct
 {
@@ -17,6 +16,10 @@ typedef struct
     int ne;
     int sw;
     int se;
+
+    // Limites da região (retângulo) que o nó representa
+    double minX, minY;
+    double maxX, maxY;
 } Node;
 
 typedef struct
@@ -27,7 +30,7 @@ typedef struct
 } QuadTree;
 
 // Funções associadas à QuadTree
-QuadTree *criaQuadTree(int initialCapacity);
+QuadTree *criaQuadTree(int initialCapacity, double minX, double minY, double maxX, double maxY);
 void destroiQuadTree(QuadTree *qt);
 int insert(QuadTree *qt, addr_t point);
 int insertIndex(QuadTree *qt, int nodeIndex, int parentIndex, int directionId, addr_t point);
@@ -35,9 +38,9 @@ void resize(QuadTree *qt);
 int activate(QuadTree *qt, char *idend, double x, double y);
 int deactivate(QuadTree *qt, char *idend, double x, double y);
 int activateDeactivate(QuadTree *qt, int nodeIndex, double x, double y, int activate);
-void buscaKNN(QuadTree *qt, const Ponto *p, int K, MaxHeap *fp);
-void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, const Ponto *p, int K, MaxHeap *fp);
-void buscaKNNRecursivoOtimizado(QuadTree *qt, int nodeIndex, const Ponto *p, int K, MaxHeap *fp);
-double distanciaMinimaRegiao(Node *node, const Ponto *p);
+void buscaKNN(QuadTree *qt, Ponto *p, int K, MaxHeap *fp);
+void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp);
+void buscaKNNRecursivoOtimizado(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp);
+double distanciaMinimaRegiao(Node *node, Ponto *p);
 
 #endif // QUADTREE_H

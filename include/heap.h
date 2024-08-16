@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "Ponto.h"
+#include "ponto.h"
 
 // Estrutura de par de ponto e distância
 typedef struct
@@ -33,5 +33,7 @@ int size(MaxHeap *h);
 DistanciaPonto top(MaxHeap *h);
 void pop(MaxHeap *h);
 DistanciaPonto getItem(MaxHeap *h, int index);
+int comparaDistancia(const void *a, const void *b);
+void imprimeHeapEmOrdemCrescente(MaxHeap *h);
 
 #endif

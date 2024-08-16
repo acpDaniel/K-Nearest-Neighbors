@@ -2,46 +2,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-QuadTree *criaQuadTree(int initialCapacity)
+// Função para criar uma quadTree
+QuadTree *criaQuadTree(int initialCapacity, double minX, double minY, double maxX, double maxY)
 {
     QuadTree *qt = (QuadTree *)malloc(1 * sizeof(QuadTree));
     qt->capacidade = initialCapacity;
     qt->tamanho = 0;
     qt->nodes = (Node *)calloc(initialCapacity, sizeof(Node));
 
-    // Inicializa cada nó
-    // for (int i = 0; i < initialCapacity; ++i)
-    // {
-    //     qt->nodes[i].hasPoint = 0;
-    //     qt->nodes[i].active = 0;
-    //     qt->nodes[i].parent = -1;
-    //     qt->nodes[i].nw = -1;
-    //     qt->nodes[i].ne = -1;
-    //     qt->nodes[i].sw = -1;
-    //     qt->nodes[i].se = -1;
-    // }
+    // Inicializa a raiz da QuadTree com os limites dados
+    qt->nodes[0].minX = minX;
+    qt->nodes[0].minY = minY;
+    qt->nodes[0].maxX = maxX;
+    qt->nodes[0].maxY = maxY;
     return qt;
 }
 
+// Função para desalocar a quadTree
 void destroiQuadTree(QuadTree *qt)
 {
-    // end_page();
+    if (qt == NULL)
+        return;
+
+    free(qt->nodes);
+    free(qt);
 }
 
+// Inserir uma nova estação de carga na quadTree
 int insert(QuadTree *qt, addr_t point)
 {
     return insertIndex(qt, 0, -1, 0, point);
 }
 
+// Função recursiva para inserir a estação com os indices corretos
 int insertIndex(QuadTree *qt, int nodeIndex, int parentIndex, int directionId, addr_t point)
 {
     if (nodeIndex < 0 || nodeIndex >= qt->capacidade)
     {
-        printf("Indice invalido %.2i, capacidade: %.2i", nodeIndex, qt->capacidade);
         return 0; // Índice inválido
     }
 
-    // printf("Testando ponto no indice %.2i \n", nodeIndex);
     Node *node = &(qt->nodes[nodeIndex]);
 
     if (!node->hasPoint)
@@ -60,19 +60,34 @@ int insertIndex(QuadTree *qt, int nodeIndex, int parentIndex, int directionId, a
             {
             case 1:
                 parentNode->nw = nodeIndex;
+                node->maxX = parentNode->point.x;
+                node->minY = parentNode->point.y;
+                node->minX = parentNode->minX;
+                node->maxY = parentNode->maxY;
                 break;
             case 2:
                 parentNode->ne = nodeIndex;
+                node->minX = parentNode->point.x;
+                node->minY = parentNode->point.y;
+                node->maxX = parentNode->maxX;
+                node->maxY = parentNode->maxY;
                 break;
             case 3:
                 parentNode->sw = nodeIndex;
+                node->maxX = parentNode->point.x;
+                node->maxY = parentNode->point.y;
+                node->minX = parentNode->minX;
+                node->minY = parentNode->minY;
                 break;
             case 4:
                 parentNode->se = nodeIndex;
+                node->minX = parentNode->point.x;
+                node->maxY = parentNode->point.y;
+                node->maxX = parentNode->maxX;
+                node->minY = parentNode->minY;
                 break;
             }
         }
-
         return 1;
     }
 
@@ -107,14 +122,13 @@ int insertIndex(QuadTree *qt, int nodeIndex, int parentIndex, int directionId, a
 
     if (qt->tamanho == qt->capacidade)
     {
-        // printf("Entrou no resize \n");
         resize(qt);
-        // printf("capacidade apos resize: %.2i \n", qt->capacidade);
     }
 
     return insertIndex(qt, childIndex, nodeIndex, childDirection, point);
 }
 
+// Função para dar resize no vetor de nós da quadTree
 void resize(QuadTree *qt)
 {
     int newCapacity = qt->capacidade * 2;
@@ -122,7 +136,6 @@ void resize(QuadTree *qt)
 
     if (!newNodes)
     {
-        // fprintf(stderr, "Erro ao alocar memória para redimensionar a QuadTree\n");
         exit(EXIT_FAILURE);
     }
 
@@ -138,9 +151,11 @@ void resize(QuadTree *qt)
     qt->capacidade = newCapacity;
 }
 
+// Função para ativar uma estação de recarga
 int activate(QuadTree *qt, char *idend, double x, double y)
 {
-    int result = activateDeactivate(qt, 0, x, y, 1); // Alterado para 1 (ativar)
+    // Alterado para 1 (ativar)
+    int result = activateDeactivate(qt, 0, x, y, 1);
 
     if (result == 0)
     {
@@ -154,9 +169,11 @@ int activate(QuadTree *qt, char *idend, double x, double y)
     return result;
 }
 
+// Função para desativar uma estação de recarga
 int deactivate(QuadTree *qt, char *idend, double x, double y)
 {
-    int result = activateDeactivate(qt, 0, x, y, 0); // Alterado para 0 (desativar)
+    // Alterado para 0 (desativar)
+    int result = activateDeactivate(qt, 0, x, y, 0);
 
     if (result == 0)
     {
@@ -170,6 +187,7 @@ int deactivate(QuadTree *qt, char *idend, double x, double y)
     return result;
 }
 
+// Função que é utilziada tanto para ativar quanto desativar uma estação
 int activateDeactivate(QuadTree *qt, int nodeIndex, double x, double y, int activate)
 {
     Node *node = &(qt->nodes[nodeIndex]);
@@ -220,12 +238,14 @@ int activateDeactivate(QuadTree *qt, int nodeIndex, double x, double y, int acti
     return activateDeactivate(qt, childIndex, x, y, activate);
 }
 
-void buscaKNN(QuadTree *qt, const Ponto *p, int K, MaxHeap *fp)
+// Função linear para busca do pontos mais proximos
+void buscaKNN(QuadTree *qt, Ponto *p, int K, MaxHeap *fp)
 {
     buscaKNNRecursivo(qt, 0, p, K, fp);
 }
 
-void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, const Ponto *p, int K, MaxHeap *fp)
+// Função linear e recursiva para busca do pontos mais proximos, apenas para comparação de resultados
+void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp)
 {
     if (nodeIndex < 0 || nodeIndex >= qt->capacidade)
     {
@@ -234,10 +254,13 @@ void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, const Ponto *p, int K, MaxHe
 
     Node *node = &(qt->nodes[nodeIndex]);
 
+    // Se o nó não tiver ponto ou não estiver ativo, ignorar
     if (node->hasPoint && node->active)
     {
+        // Calcular a distância do ponto atual ao ponto de referência
         double dist = distancia(&(node->point), p);
 
+        // Se há espaço no heap ou o ponto atual está mais próximo do que o mais distante no heap
         if (size(fp) < K)
         {
             push(fp, dist, &(node->point));
@@ -249,10 +272,20 @@ void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, const Ponto *p, int K, MaxHe
         }
     }
 
-    buscaKNNRecursivo(qt, nodeIndex + 1, p, K, fp);
+    int childIndices[4] = {node->nw, node->ne, node->sw, node->se};
+
+    for (int i = 0; i < 4; ++i)
+    {
+        int childIndex = childIndices[i];
+        if (childIndex > 0 && childIndex < qt->capacidade)
+        {
+            buscaKNNRecursivo(qt, childIndex, p, K, fp);
+        }
+    }
 }
 
-void buscaKNNRecursivoOtimizado(QuadTree *qt, int nodeIndex, const Ponto *p, int K, MaxHeap *fp)
+// Função recusriva e com uma otimização para retornar os pontos mais próximos mais rapidamente
+void buscaKNNRecursivoOtimizado(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp)
 {
     if (nodeIndex < 0 || nodeIndex >= qt->capacidade)
     {
@@ -301,9 +334,10 @@ void buscaKNNRecursivoOtimizado(QuadTree *qt, int nodeIndex, const Ponto *p, int
     }
 }
 
-double distanciaMinimaRegiao(Node *node, const Ponto *p)
+// Calcula a distância mínima entre um ponto e a região representada por um nó da QuadTree
+double distanciaMinimaRegiao(Node *node, Ponto *p)
 {
-    double dx = fmax(0, fmax(node->point.x - p->x, p->x - node->point.x));
-    double dy = fmax(0, fmax(node->point.y - p->y, p->y - node->point.y));
+    double dx = fmax(0, fmax(node->minX - p->x, p->x - node->maxX));
+    double dy = fmax(0, fmax(node->minY - p->y, p->y - node->maxY));
     return sqrt(dx * dx + dy * dy);
 }

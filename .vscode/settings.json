@@ -42,6 +42,7 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "cstring": "cpp",
-        "quadtree.h": "c"
+        "quadtree.h": "c",
+        "stdio.h": "c"
     }
 }

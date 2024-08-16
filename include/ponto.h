@@ -24,6 +24,6 @@ typedef struct
 Ponto criaPonto(double x, double y);
 
 // Função para calcular a distância entre dois pontos
-double distancia(const addr_t *p, const Ponto *b);
+double distancia(addr_t *p, Ponto *b);
 
 #endif
