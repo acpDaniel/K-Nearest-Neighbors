@@ -7,8 +7,8 @@
 HashTable criaHashTable(int tamanhoOriginal)
 {
     HashTable ht;
-    ht.tamanhoOriginal = tamanhoOriginal;
-    ht.tamanhoTabela = tamanhoOriginal; // Pode começar com o tamanho original
+    ht.tamanhoOriginal = tamanhoOriginal * 2;
+    ht.tamanhoTabela = tamanhoOriginal * 2; // Pode começar com o tamanho original
     ht.tamanhoConjunto = 0;
     ht.tabela = (ElementoTabela *)malloc(ht.tamanhoTabela * sizeof(ElementoTabela));
 
@@ -23,24 +23,6 @@ HashTable criaHashTable(int tamanhoOriginal)
     }
 
     return ht;
-}
-
-// Função para criar a chave de hash na tabela
-int Hash(char *s)
-{
-    int hashValue = 0;
-    for (size_t i = 0; i < strlen(s); i++)
-    {
-        hashValue += (s[i] - '0') * (i + 1);
-    }
-
-    // Se o hashValue for negativo, convertemos para positivo
-    if (hashValue < 0)
-    {
-        hashValue = -hashValue;
-    }
-
-    return hashValue;
 }
 
 // Função auxiliar para dar resize na tabela
@@ -78,6 +60,24 @@ void Resize(HashTable *ht, size_t tamanho)
     free(tabelaAux); // Libera a memória antiga
 }
 
+// Função para criar a chave de hash na tabela
+int Hash(char *s, int tamanho)
+{
+    int hashValue = 0;
+    for (size_t i = 0; i < strlen(s); i++)
+    {
+        hashValue += (s[i]) * (i + 1);
+    }
+
+    // Se o hashValue for negativo, convertemos para positivo
+    if (hashValue < 0)
+    {
+        hashValue = -hashValue;
+    }
+
+    return hashValue % tamanho;
+}
+
 // Função para inserir um novo elemento na tabela hash
 void Inserir(HashTable *ht, char *id, double x, double y)
 {
@@ -86,57 +86,71 @@ void Inserir(HashTable *ht, char *id, double x, double y)
         Resize(ht, ht->tamanhoTabela * 2);
     }
 
-    int pos = Hash(id);
+    int pos = Hash(id, ht->tamanhoTabela);
+    int posAjustada = pos;
     int i = 0;
-    while ((i < ht->tamanhoTabela) && !ht->tabela[(pos + i) % ht->tamanhoTabela].vazio && strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) != 0)
+    while ((i < ht->tamanhoTabela) && !ht->tabela[posAjustada].vazio && strcmp(ht->tabela[posAjustada].id, id) != 0)
     {
         i++;
+        posAjustada = (pos + i * i) % ht->tamanhoTabela;
     }
 
-    ht->tabela[(pos + i) % ht->tamanhoTabela].id = id;
-    ht->tabela[(pos + i) % ht->tamanhoTabela].x = x;
-    ht->tabela[(pos + i) % ht->tamanhoTabela].y = y;
-    ht->tabela[(pos + i) % ht->tamanhoTabela].vazio = false;
-    ht->tabela[(pos + i) % ht->tamanhoTabela].retirada = false;
-    ht->tamanhoConjunto++;
+    if (ht->tabela[posAjustada].vazio || ht->tabela[posAjustada].retirada)
+    {
+        ht->tabela[posAjustada].id = strdup(id);
+        ht->tabela[posAjustada].x = x;
+        ht->tabela[posAjustada].y = y;
+        ht->tabela[posAjustada].vazio = false;
+        ht->tabela[posAjustada].retirada = false;
+        ht->tamanhoConjunto++;
+    }
 }
 
 // Função para remover um elemento da tabela
 void Remover(HashTable *ht, char *id)
 {
-    int pos = Hash(id);
+    int pos = Hash(id, ht->tamanhoTabela);
+    int posAjustada = pos;
     int i = 0;
-    while ((i < ht->tamanhoTabela) && strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) != 0 && !ht->tabela[(pos + i) % ht->tamanhoTabela].vazio)
-    {
-        i++;
-    }
 
-    if (strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) == 0 && !ht->tabela[(pos + i) % ht->tamanhoTabela].retirada)
+    while ((i < ht->tamanhoTabela) && !ht->tabela[posAjustada].vazio)
     {
-        ht->tabela[(pos + i) % ht->tamanhoTabela].retirada = true;
-        ht->tamanhoConjunto--;
+        // Se encontrar o elemento com o ID correspondente
+        if (strcmp(ht->tabela[posAjustada].id, id) == 0 && !ht->tabela[posAjustada].retirada)
+        {
+            // Marcar como removido
+            ht->tabela[posAjustada].retirada = true;
+            ht->tamanhoConjunto--;
+            return;
+        }
+
+        i++;
+        posAjustada = (pos + i * i) % ht->tamanhoTabela;
     }
 }
 
 // Função que recebe o id de uma estação e altera os parametros x e y por referencia para retornar as coordenadas
 bool GetCoords(HashTable *ht, char *id, double *x, double *y)
 {
-    int pos = Hash(id);
+    int pos = Hash(id, ht->tamanhoTabela);
+    int posAjustada = pos;
     int i = 0;
-    while ((i < ht->tamanhoTabela) && strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) != 0 && !ht->tabela[(pos + i) % ht->tamanhoTabela].vazio)
+    while ((i < ht->tamanhoTabela) && strcmp(ht->tabela[posAjustada].id, id) != 0 && !ht->tabela[posAjustada].vazio)
     {
         i++;
+        posAjustada = (pos + i * i) % ht->tamanhoTabela;
     }
 
-    if (strcmp(ht->tabela[(pos + i) % ht->tamanhoTabela].id, id) == 0 && !ht->tabela[(pos + i) % ht->tamanhoTabela].retirada)
+    if (strcmp(ht->tabela[posAjustada].id, id) == 0 && !ht->tabela[posAjustada].retirada)
     {
-        *x = ht->tabela[(pos + i) % ht->tamanhoTabela].x;
-        *y = ht->tabela[(pos + i) % ht->tamanhoTabela].y;
+        *x = ht->tabela[posAjustada].x;
+        *y = ht->tabela[posAjustada].y;
         return true;
     }
     return false;
 }
 
+// Função para destroir hashTable
 void destroiHashTable(HashTable *ht)
 {
     if (ht == NULL)
@@ -147,7 +161,7 @@ void destroiHashTable(HashTable *ht)
     {
         if (!ht->tabela[i].vazio && ht->tabela[i].id != NULL)
         {
-            // Libera a memória alocada para a string ID, se alocada dinamicamente
+            // Libera a memória alocada para o id
             free(ht->tabela[i].id);
         }
     }

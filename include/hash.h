@@ -27,7 +27,7 @@ typedef struct
 // Declaração das funções
 HashTable criaHashTable(int tamanhoOriginal);
 void destroiHashTable(HashTable *ht);
-int Hash(char *s);
+int Hash(char *s, int tamanho);
 void Resize(HashTable *ht, size_t tamanho);
 void Inserir(HashTable *ht, char *id, double x, double y);
 void Remover(HashTable *ht, char *id);
