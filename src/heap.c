@@ -49,13 +49,13 @@ void heapifyDown(MaxHeap *h, int index)
 {
     while (2 * index + 1 < h->tamanho)
     {
-        int left = 2 * index + 1;
-        int right = 2 * index + 2;
-        int maior = left;
+        int esq = 2 * index + 1;
+        int dir = 2 * index + 2;
+        int maior = esq;
 
-        if (right < h->tamanho && h->heap[right].distancia > h->heap[left].distancia)
+        if (dir < h->tamanho && h->heap[dir].distancia > h->heap[esq].distancia)
         {
-            maior = right;
+            maior = dir;
         }
 
         if (h->heap[index].distancia >= h->heap[maior].distancia)

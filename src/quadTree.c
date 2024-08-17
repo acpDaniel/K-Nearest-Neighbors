@@ -238,52 +238,6 @@ int activateDeactivate(QuadTree *qt, int nodeIndex, double x, double y, int acti
     return activateDeactivate(qt, childIndex, x, y, activate);
 }
 
-// Função linear para busca do pontos mais proximos
-void buscaKNN(QuadTree *qt, Ponto *p, int K, MaxHeap *fp)
-{
-    buscaKNNRecursivo(qt, 0, p, K, fp);
-}
-
-// Função linear e recursiva para busca do pontos mais proximos, apenas para comparação de resultados
-void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp)
-{
-    if (nodeIndex < 0 || nodeIndex >= qt->capacidade)
-    {
-        return;
-    }
-
-    Node *node = &(qt->nodes[nodeIndex]);
-
-    // Se o nó não tiver ponto ou não estiver ativo, ignorar
-    if (node->hasPoint && node->active)
-    {
-        // Calcular a distância do ponto atual ao ponto de referência
-        double dist = distancia(&(node->point), p);
-
-        // Se há espaço no heap ou o ponto atual está mais próximo do que o mais distante no heap
-        if (size(fp) < K)
-        {
-            push(fp, dist, &(node->point));
-        }
-        else if (dist < top(fp).distancia)
-        {
-            pop(fp);
-            push(fp, dist, &(node->point));
-        }
-    }
-
-    int childIndices[4] = {node->nw, node->ne, node->sw, node->se};
-
-    for (int i = 0; i < 4; ++i)
-    {
-        int childIndex = childIndices[i];
-        if (childIndex > 0 && childIndex < qt->capacidade)
-        {
-            buscaKNNRecursivo(qt, childIndex, p, K, fp);
-        }
-    }
-}
-
 // Função recusriva e com uma otimização para retornar os pontos mais próximos mais rapidamente
 void buscaKNNRecursivoOtimizado(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp)
 {
@@ -340,4 +294,50 @@ double distanciaMinimaRegiao(Node *node, Ponto *p)
     double dx = fmax(0, fmax(node->minX - p->x, p->x - node->maxX));
     double dy = fmax(0, fmax(node->minY - p->y, p->y - node->maxY));
     return sqrt(dx * dx + dy * dy);
+}
+
+// Função para busca do pontos mais proximos
+void buscaKNN(QuadTree *qt, Ponto *p, int K, MaxHeap *fp)
+{
+    buscaKNNRecursivo(qt, 0, p, K, fp);
+}
+
+// Função linear e recursiva para busca do pontos mais proximos, apenas para comparação de resultados
+void buscaKNNRecursivo(QuadTree *qt, int nodeIndex, Ponto *p, int K, MaxHeap *fp)
+{
+    if (nodeIndex < 0 || nodeIndex >= qt->capacidade)
+    {
+        return;
+    }
+
+    Node *node = &(qt->nodes[nodeIndex]);
+
+    // Se o nó não tiver ponto ou não estiver ativo, ignorar
+    if (node->hasPoint && node->active)
+    {
+        // Calcular a distância do ponto atual ao ponto de referência
+        double dist = distancia(&(node->point), p);
+
+        // Se há espaço no heap ou o ponto atual está mais próximo do que o mais distante no heap
+        if (size(fp) < K)
+        {
+            push(fp, dist, &(node->point));
+        }
+        else if (dist < top(fp).distancia)
+        {
+            pop(fp);
+            push(fp, dist, &(node->point));
+        }
+    }
+
+    int childIndices[4] = {node->nw, node->ne, node->sw, node->se};
+
+    for (int i = 0; i < 4; ++i)
+    {
+        int childIndex = childIndices[i];
+        if (childIndex > 0 && childIndex < qt->capacidade)
+        {
+            buscaKNNRecursivo(qt, childIndex, p, K, fp);
+        }
+    }
 }

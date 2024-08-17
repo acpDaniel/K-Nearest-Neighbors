@@ -14,8 +14,8 @@ void read_csv(char *filename, QuadTree *qt, HashTable *ht)
         exit(EXIT_FAILURE);
     }
 
-    char line[512];                  // Buffer para cada linha
-    fgets(line, sizeof(line), file); // Pular a primeira linha (cabeçalho)
+    char line[512];
+    fgets(line, sizeof(line), file);
 
     while (fgets(line, sizeof(line), file))
     {
@@ -74,10 +74,12 @@ void processarGeracarga(char *filename, QuadTree *qt, HashTable *ht)
     }
 
     char line[128];
+
+    // Ignora a primeira linha
     fgets(line, sizeof(line), file);
 
-    int num = atoi(line); // Lê o número de comandos
-    while (fgets(line, sizeof(line), file) && num > 0)
+    // Lê o arquivo até o final
+    while (fgets(line, sizeof(line), file))
     {
         char command;
         sscanf(line, "%c", &command);
@@ -108,46 +110,76 @@ void processarGeracarga(char *filename, QuadTree *qt, HashTable *ht)
             int k;
             sscanf(line + 1, "%lf %lf %d", &x, &y, &k);
 
-            MaxHeap *fp = criaMaxHeap(k); // Cria a fila de prioridade para os k pontos mais próximos
+            MaxHeap *fp = criaMaxHeap(k);
             Ponto p = criaPonto(x, y);
-            buscaKNNRecursivo(qt, 0, &p, k, fp);
-            // buscaKNNRecursivoOtimizado(qt, 0, &p, k, fp);
+            // buscaKNNRecursivo(qt, 0, &p, k, fp);
+            buscaKNNRecursivoOtimizado(qt, 0, &p, k, fp);
             imprimeHeapEmOrdemCrescente(fp);
             free(fp);
         }
-        num--;
     }
 
     fclose(file);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    char *arquivoBase = NULL;
+    char *arquivoEventos = NULL;
 
-    // Abrindo o arquivo 'outra.base' para ler o tamanho da QuadTree e HashTable
-    FILE *file = fopen("geracarga.base", "r");
+    // Processa os argumentos da linha de comando manualmente
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-b") == 0 && i + 1 < argc)
+        {
+            arquivoBase = argv[i + 1];
+            i++;
+        }
+        else if (strcmp(argv[i], "-e") == 0 && i + 1 < argc)
+        {
+            arquivoEventos = argv[i + 1];
+            i++;
+        }
+    }
+
+    // Verifica se os arquivos foram fornecidos
+    if (arquivoBase == NULL || arquivoEventos == NULL)
+    {
+        // Define os nomes dos arquivos padrão
+        if (arquivoBase == NULL)
+        {
+            arquivoBase = "geracarga.base";
+        }
+        if (arquivoEventos == NULL)
+        {
+            arquivoEventos = "geracarga.ev";
+        }
+    }
+
+    // Abrindo o arquivo de base para ler o tamanho da QuadTree e HashTable
+    FILE *file = fopen(arquivoBase, "r");
     if (file == NULL)
     {
-        perror("Erro ao abrir o arquivo 'geracarga.base'");
+        perror("Erro ao abrir o arquivo de base");
         return 1;
     }
 
     int tamanho;
-    fscanf(file, "%d", &tamanho); // Lê o primeiro número do arquivo
+    fscanf(file, "%d", &tamanho);
     fclose(file);
 
-    // Cria a QuadTree e a HashTable com o tamanho lido. Os parametros de max e min das coordenadas foram baseados no arquivo com todos endereços de bh
+    // Cria a QuadTree e a HashTable com o tamanho lido. Os parâmetros de max e min das coordenadas foram baseados no arquivo com todos os endereços de BH
     QuadTree *qt = criaQuadTree(tamanho, 598017.313632323, 7790968.24200244, 619122.989979841, 7804103.33566041);
     HashTable ht = criaHashTable(tamanho);
 
     // Lê o arquivo com as estações de recarga
-    read_csv("geracarga.base", qt, &ht);
+    read_csv(arquivoBase, qt, &ht);
 
-    // Chama a função para processar o arquivo 'geracarga.ev'
-    processarGeracarga("geracarga.ev", qt, &ht);
+    // Chama a função para processar o arquivo de eventos
+    processarGeracarga(arquivoEventos, qt, &ht);
 
-    // destroiQuadTree(qt);
-    // destroiHashTable(&ht);
+    destroiQuadTree(qt);
+    destroiHashTable(&ht);
 
     return 0;
 }

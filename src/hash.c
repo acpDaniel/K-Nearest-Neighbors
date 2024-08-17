@@ -8,14 +8,14 @@ HashTable criaHashTable(int tamanhoOriginal)
 {
     HashTable ht;
     ht.tamanhoOriginal = tamanhoOriginal * 2;
-    ht.tamanhoTabela = tamanhoOriginal * 2; // Pode começar com o tamanho original
+    ht.tamanhoTabela = tamanhoOriginal * 2;
     ht.tamanhoConjunto = 0;
     ht.tabela = (ElementoTabela *)malloc(ht.tamanhoTabela * sizeof(ElementoTabela));
 
     // Inicializa cada posição da tabela
     for (int i = 0; i < ht.tamanhoTabela; i++)
     {
-        ht.tabela[i].id = NULL; // Inicializa com NULL ao invés de string vazia
+        ht.tabela[i].id = NULL;
         ht.tabela[i].x = 0;
         ht.tabela[i].y = 0;
         ht.tabela[i].vazio = true;
@@ -57,25 +57,25 @@ void Resize(HashTable *ht, size_t tamanho)
         }
     }
 
-    free(tabelaAux); // Libera a memória antiga
+    free(tabelaAux);
 }
 
 // Função para criar a chave de hash na tabela
 int Hash(char *s, int tamanho)
 {
-    int hashValue = 0;
+    int hash = 0;
     for (size_t i = 0; i < strlen(s); i++)
     {
-        hashValue += (s[i]) * (i + 1);
+        hash += (s[i]) * (i + 1);
     }
 
-    // Se o hashValue for negativo, convertemos para positivo
-    if (hashValue < 0)
+    // Se o hash for negativo, convertemos para positivo
+    if (hash < 0)
     {
-        hashValue = -hashValue;
+        hash = -hash;
     }
 
-    return hashValue % tamanho;
+    return hash % tamanho;
 }
 
 // Função para inserir um novo elemento na tabela hash
