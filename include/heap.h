@@ -33,7 +33,6 @@ int size(MaxHeap *h);
 DistanciaPonto top(MaxHeap *h);
 void pop(MaxHeap *h);
 DistanciaPonto getItem(MaxHeap *h, int index);
-int comparaDistancia(const void *a, const void *b);
 void imprimeHeapEmOrdemCrescente(MaxHeap *h);
 
 #endif

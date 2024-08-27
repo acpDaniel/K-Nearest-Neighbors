@@ -111,18 +111,6 @@ DistanciaPonto getItem(MaxHeap *h, int index)
     return h->heap[index];
 }
 
-// Função de comparação para qsort
-int comparaDistancia(const void *a, const void *b)
-{
-    DistanciaPonto *dp1 = (DistanciaPonto *)a;
-    DistanciaPonto *dp2 = (DistanciaPonto *)b;
-    if (dp1->distancia < dp2->distancia)
-        return -1;
-    if (dp1->distancia > dp2->distancia)
-        return 1;
-    return 0;
-}
-
 // Função para imprimir em ordem crescente o heap
 void imprimeHeapEmOrdemCrescente(MaxHeap *h)
 {
@@ -131,17 +119,26 @@ void imprimeHeapEmOrdemCrescente(MaxHeap *h)
         return;
     }
 
-    // Cria uma cópia da heap
-    DistanciaPonto *copiaHeap = (DistanciaPonto *)malloc(h->tamanho * sizeof(DistanciaPonto));
-    memcpy(copiaHeap, h->heap, h->tamanho * sizeof(DistanciaPonto));
+    // Cria uma cópia do heap para não modificar o heap original
+    MaxHeap *copiaHeap = criaMaxHeap(h->capacidade);
+    memcpy(copiaHeap->heap, h->heap, h->tamanho * sizeof(DistanciaPonto));
+    copiaHeap->tamanho = h->tamanho;
 
-    // Ordena a cópia pelo campo distancia
-    qsort(copiaHeap, h->tamanho, sizeof(DistanciaPonto), comparaDistancia);
+    // Cria uma lista para armazenar os elementos em ordem crescente
+    DistanciaPonto *ordenados = (DistanciaPonto *)malloc(h->tamanho * sizeof(DistanciaPonto));
+    int n = 0;
 
-    // Imprime os elementos na ordem crescente de distancia
-    for (int i = 0; i < h->tamanho; ++i)
+    // Remove os elementos da heap (maiores primeiro) e armazena na lista
+    while (copiaHeap->tamanho > 0)
     {
-        DistanciaPonto dp = copiaHeap[i];
+        ordenados[n++] = top(copiaHeap);
+        pop(copiaHeap);
+    }
+
+    // Imprime os elementos na ordem crescente (que agora está no vetor "ordenados")
+    for (int i = n - 1; i >= 0; --i)
+    {
+        DistanciaPonto dp = ordenados[i];
         printf("%s %s, %d, %s, %s, %d", dp.ponto->sigla_tipo,
                dp.ponto->nome_logra, dp.ponto->numero_imo,
                dp.ponto->nome_bairr, dp.ponto->nome_regio,
@@ -149,6 +146,7 @@ void imprimeHeapEmOrdemCrescente(MaxHeap *h)
         printf(" (%.3f)\n", dp.distancia);
     }
 
-    // Libera a memória da cópia da heap
-    free(copiaHeap);
+    // Libera a memória utilizada
+    free(ordenados);
+    destroiMaxHeap(copiaHeap);
 }
